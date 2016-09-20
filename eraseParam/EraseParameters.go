@@ -1,7 +1,6 @@
 package eraseParam
 
 import (
-	"LogAnalyze/common"
 	"fmt"
 	"io/ioutil"
 	"regexp"
@@ -21,24 +20,29 @@ func EraseParameters(in, out string) {
 		if res := reg.FindStringIndex(line); res == nil {
 			continue
 		}
-		line = braceErase(line[13:])
-		fmt.Println(line)
+		fmt.Println(erasingPipeline(line))
 	}
 }
 
-func braceErase(line string) string {
-	var stack common.Stack
-	for i, v := range line {
-		switch v {
-		case '{':
-			stack.Push(i)
-		case '}':
-			index, ok := stack.Pop()
-			if ok == false {
-				continue
-			}
-			line = line[:index.(int)] + line[i+1:]
-		}
-	}
-	return line
+func erasingPipeline(line string) string {
+	res := line[13:]
+	res = eraseBrace(res)
+	return res
 }
+
+func eraseBrace(line string) string {
+	reg := regexp.MustCompile(`{[^{}]*?}|\[[^\[\]]*?\]`)
+	res := line
+	for {
+		replaced := reg.ReplaceAllString(res, "")
+		if replaced == res {
+			break
+		}
+		res = replaced
+	}
+	return res
+}
+
+// func eraseSquareBracket(line string) string {
+// 	reg := regexp.MustCompile(`\[[^[]]*?\]`)
+// }
