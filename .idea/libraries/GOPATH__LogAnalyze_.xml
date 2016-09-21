@@ -1,0 +1,22 @@
+<component name="libraryTable">
+  <library name="GOPATH &lt;LogAnalyze&gt;">
+    <CLASSES>
+      <root url="file://$USER_HOME$/Library/Golib/src/golang.org" />
+      <root url="file://$USER_HOME$/Library/Golib/src/sourcegraph.com" />
+      <root url="file://$PROJECT_DIR$/../TestAPI" />
+      <root url="file://$PROJECT_DIR$/../LogExtractor" />
+      <root url="file://$USER_HOME$/Library/Golib/src/github.com" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="file://$USER_HOME$/Library/Golib/src/golang.org" />
+      <root url="file://$USER_HOME$/Library/Golib/src/sourcegraph.com" />
+      <root url="file://$PROJECT_DIR$/../TestAPI" />
+      <root url="file://$PROJECT_DIR$/../LogExtractor" />
+      <root url="file://$USER_HOME$/Library/Golib/src/github.com" />
+    </SOURCES>
+    <excluded>
+      <root url="file://$PROJECT_DIR$" />
+    </excluded>
+  </library>
+</component>
