@@ -1,7 +1,8 @@
 package extractor
 
 import (
-	"bytes"
+	. "LogAnalyze/common"
+	"LogAnalyze/sql"
 	"fmt"
 	"io/ioutil"
 	"regexp"
@@ -9,23 +10,22 @@ import (
 )
 
 //EraseParameters used to extract the raw log key
-//@param in and out are file paths
-func GenerateTemplate(in, out string) {
+//in and out are file paths
+func GenerateTemplate(in string) {
 	file, err := ioutil.ReadFile(in)
-	if err != nil {
-		panic("File not found!\n" + err.Error())
-	}
+	CheckErr(err, "File not found!")
 	fmt.Println("Open file: " + in)
 	lines := strings.Split(string(file), "\n")
-	template := make(map[string]bool)
+	var events []string
 	for _, line := range lines {
 		res, ok := erasingPipeline(line)
 		if ok == false {
 			continue
 		}
-		template[res] = true
+		events = append(events, res)
 	}
-	output(template, out)
+	sql.Insert(events)
+	fmt.Println(len(events))
 }
 
 func erasingPipeline(line string) (string, bool) {
@@ -74,24 +74,12 @@ func eraseEqual(line string) string {
 }
 
 func eraseNum(line string) string {
-	reg := regexp.MustCompile(`\d+\.?\d*`)
-	parts := strings.Split(line, "-")
-	return parts[0] + "-" + reg.ReplaceAllString(parts[1], " ")
+	reg := regexp.MustCompile(`\d+\.?\d* | \d+\.?\d*`)
+	parts := strings.Split(line, " - ")
+	return parts[0] + " - " + reg.ReplaceAllString(parts[1], " ")
 }
 
 func trim(line string) string {
-	reg := regexp.MustCompile(` +`)
+	reg := regexp.MustCompile(` +|	+`)
 	return strings.Trim(reg.ReplaceAllString(line, " "), " ")
-}
-
-func output(template map[string]bool, out string) {
-	var buf bytes.Buffer
-	for k := range template {
-		buf.WriteString(k)
-		buf.WriteString("\n")
-	}
-	err := ioutil.WriteFile(out, buf.Bytes(), 0666)
-	if err != nil {
-		panic("Write file error!\n" + err.Error())
-	}
 }
