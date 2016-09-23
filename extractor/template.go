@@ -9,8 +9,8 @@ import (
 	"strings"
 )
 
-//EraseParameters used to extract the raw log key
-//in and out are file paths
+//EraseParameters extracts the raw log key
+//'in' and 'out' are file paths
 func GenerateTemplate(in string) {
 	file, err := ioutil.ReadFile(in)
 	CheckErr(err, "File not found!")
@@ -24,7 +24,7 @@ func GenerateTemplate(in string) {
 		}
 		events = append(events, res)
 	}
-	sql.Insert(events)
+	sql.Insert(events, "INSERT INTO template(event) values(?)")
 	fmt.Println(len(events))
 }
 
@@ -80,6 +80,6 @@ func eraseNum(line string) string {
 }
 
 func trim(line string) string {
-	reg := regexp.MustCompile(` +|\t+`)
+	reg := regexp.MustCompile(`\s+`)
 	return strings.Trim(reg.ReplaceAllString(line, " "), " ")
 }
