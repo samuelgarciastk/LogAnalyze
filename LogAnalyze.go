@@ -5,6 +5,6 @@ import (
 )
 
 func main() {
-	extractor.GenerateTemplate("/Users/stk/Documents/Projects/RawLog/9/creditloan/creditsystem.log.2016-08-10")
-	//extractor.GenerateTemplate("/Users/stk/Documents/Projects/RawLog/test")
+	//extractor.GenerateTemplate("/Users/stk/Documents/Projects/RawLog/9/creditloan/creditsystem.log.2016-08-10")
+	extractor.GenerateTemplate("/Users/stk/Documents/Projects/RawLog/test")
 }

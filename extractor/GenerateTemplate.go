@@ -80,6 +80,6 @@ func eraseNum(line string) string {
 }
 
 func trim(line string) string {
-	reg := regexp.MustCompile(` +|	+`)
+	reg := regexp.MustCompile(` +|\t+`)
 	return strings.Trim(reg.ReplaceAllString(line, " "), " ")
 }
