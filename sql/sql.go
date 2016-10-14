@@ -20,9 +20,9 @@ func Close() {
 	db.Close()
 }
 
-//Insert is used to insert data set into the database
+//Insert is used to insert data slice into the database
 //'query' is the query sequence
-func Insert(data []string, query string) {
+func InsertSlice(data []string, query string) {
 	tx, err := db.Begin()
 	CheckErr(err)
 	stmt, err := tx.Prepare(query)
@@ -30,6 +30,20 @@ func Insert(data []string, query string) {
 	defer stmt.Close()
 	for _, value := range data {
 		stmt.Exec(value)
+	}
+	tx.Commit()
+}
+
+//Insert is used to insert data map into the database
+//'query' is the query sequence
+func InsertMap(data map[string]interface{}, query string) {
+	tx, err := db.Begin()
+	CheckErr(err)
+	stmt, err := tx.Prepare(query)
+	CheckErr(err)
+	defer stmt.Close()
+	for k := range data {
+		stmt.Exec(k)
 	}
 	tx.Commit()
 }

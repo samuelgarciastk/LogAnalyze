@@ -2,84 +2,61 @@ package extractor
 
 import (
 	. "LogAnalyze/common"
-	"LogAnalyze/sql"
+	"bufio"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"regexp"
+	"strconv"
 	"strings"
+	"sync"
 )
 
-//EraseParameters extracts the raw log key
-//'in' and 'out' are file paths
+var (
+	location = make(map[string]interface{})
+	out      = "/Users/stk/Documents/Projects/Reports/template"
+	lock     = sync.Mutex{}
+)
+
+//GenerateLocation generates the location list
+//'in' is the file path used to generate
 func GenerateTemplate(in string) {
-	file, err := ioutil.ReadFile(in)
+	file, err := os.OpenFile(in, os.O_RDONLY, 0666)
 	CheckErr(err, "File not found!")
+	defer file.Close()
 	fmt.Println("Open file: " + in)
-	lines := strings.Split(string(file), "\n")
-	var events []string
-	for _, line := range lines {
-		res, ok := erasingPipeline(line)
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		res, ok := getLocation(scanner.Text())
 		if ok == false {
 			continue
 		}
-		events = append(events, res)
+		lock.Lock()
+		location[res] = true
+		lock.Unlock()
+		fmt.Println(res)
 	}
-	sql.Insert(events, "INSERT INTO template(event) values(?)")
-	fmt.Println(len(events))
+	fmt.Println(in + ": " + strconv.Itoa(len(location)))
 }
 
-func erasingPipeline(line string) (string, bool) {
-	res, ok := extractMsg(line)
-	if ok == false {
-		return "", false
-	}
-	res = eraseBrace(res)
-	res = eraseColon(res)
-	res = eraseEqual(res)
-	res = eraseNum(res)
-	res = trim(res)
-	return res, true
-}
-
-func extractMsg(line string) (string, bool) {
-	reg := regexp.MustCompile(`^\d{2}:\d{2}:\d{2}\.\d{3}.*?(INFO|WARN|ERROR) (.*? - .*)`)
+func getLocation(line string) (string, bool) {
+	reg := regexp.MustCompile(`^\d{2}:\d{2}:\d{2}\.\d{3}.*?(INFO|WARN|ERROR) (.*?) - (.*)`)
 	res := reg.FindStringSubmatch(line)
 	if len(res) < 1 {
 		return "", false
 	}
-	return res[2], true
+	return strings.Trim(res[2], " "), true
 }
 
-func eraseBrace(line string) string {
-	reg := regexp.MustCompile(`\{[^\{\}]*?}|\[[^\[\]]*?]`)
-	res := line
-	for {
-		replaced := reg.ReplaceAllString(res, "")
-		if replaced == res {
-			break
-		}
-		res = replaced
+func WriteFile() {
+	file, err := os.Create(out)
+	CheckErr(err, "Create file failed!")
+	defer file.Close()
+	fmt.Println("Begin write file")
+	bw := bufio.NewWriter(file)
+	for key := range location {
+		bw.WriteString(key)
+		bw.WriteString("\n")
 	}
-	return res
-}
-
-func eraseColon(line string) string {
-	reg := regexp.MustCompile(`(:|：).*?($|,|，| )`)
-	return reg.ReplaceAllString(line, " ")
-}
-
-func eraseEqual(line string) string {
-	reg := regexp.MustCompile(`([^=])=[^=]*?($|,|，| )`)
-	return reg.ReplaceAllString(line, "$1 ")
-}
-
-func eraseNum(line string) string {
-	reg := regexp.MustCompile(`\d+\.?\d* | \d+\.?\d*`)
-	parts := strings.Split(line, " - ")
-	return parts[0] + " - " + reg.ReplaceAllString(parts[1], " ")
-}
-
-func trim(line string) string {
-	reg := regexp.MustCompile(`\s+`)
-	return strings.Trim(reg.ReplaceAllString(line, " "), " ")
+	bw.Flush()
+	fmt.Println("Write file end")
 }
